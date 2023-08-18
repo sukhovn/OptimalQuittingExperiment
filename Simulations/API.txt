@@ -1,0 +1,136 @@
+Here we provide API description for Python routines for constructing reward tables and running simulations
+
+
+**********************************************************************************************
+		Reward tables
+**********************************************************************************************
+
+
+To make a reward table for Bernoulli button use the function
+
+	optimal_transition_table(win_max, fail_max, time_max, **kwargs)
+
+win_max and fail_max are the maximum numbers of wins and fails included in the table
+time_max is the maximal number of remaining presses for which the expected transition time is computed
+the only possible argument is prior=(alpha, beta), where alpha and beta specify the parameters of prior Beta distribution
+the default prior is prior=(1.0, 1.0) which corresponds to a uniform distribution
+
+the function returns numpy array of the size (win_max) x (fail_max) with the transition times
+
+
+**********************************************************************************************
+
+
+To make a reward table for Bernoulli button drawn from a uniform distribution with truncated probability use the function
+
+	optimal_truncated_transition_table(win_max, fail_max, time_max, **kwargs)
+
+win_max and fail_max are the maximum numbers of wins and fails included in the table
+time_max is the maximal number of remaining presses for which the expected transition time is computed
+the only possible argument is truncation which specifies the truncation probability
+the default truncation probability is truncation=0.9
+
+the function returns numpy array of the shape (win_max) x (fail_max) with the transition times
+
+
+**********************************************************************************************
+	    Experiment simulation
+**********************************************************************************************
+
+
+Two possible functions for simulating the decision making are:
+
+
+The first one returns only the accumulated reward for each run
+
+	run_trials(time, num_tries, button, policy)
+
+time is the number of presses given, num_tries is the number of times the strategy is run
+button and policy arguments will be specified below
+the function returns a numpy array of size num_tries with the reward recieved in the trials
+
+
+**********************************************************************************************
+
+
+The second one returns full decision data
+
+	record_full_trials(time, num_tries, button, policy)
+
+the function takes the same arguments as the previous one and returns a numpy array of the shape
+(num_tries) x (time) x 4 corresponding to each press in each run
+in the last index the values correspond to:
+	0 - button number starting from zero
+	1 - number of wins accumulated for the given button
+	2 - number of fails accumulated for the given button
+	3 - the outcome of this particular button press
+
+
+**********************************************************************************************
+
+
+The button is a special class that specifies which button will be used in simulations
+
+	Button("Button_name", **kwargs)
+
+the two supported types are:
+	
+	1) "Bernoulli" is the usual Bernoulli button.
+		It takes one argument specifying Beta distribution from which the button probability is drawn:
+		
+		prior=(alpha, beta)
+		
+		The default value is prior=(1.0, 1.0) which corresponds to the uniform distribution
+
+	2) "Truncated" is the button with probability drawn from the uniform distribution [0, p_max].
+		It takes one argument specifying p_max
+
+		truncation=p_max 
+
+		The default value is truncation=0.9
+
+
+**********************************************************************************************
+
+The policy is a special class that specifies which policy will be used in simulations
+
+	Policy("Policy_name", **kwargs)
+
+the supported types are:
+
+	1) "Bernoulli" is the usual optimal policy for Bernoulli buttons with Beta distribution prior
+		It takes one argument specifying the parameters for the Beta distribution
+
+		prior=(alpha, beta)
+		
+		The default value is prior=(1.0, 1.0) which corresponds to the uniform prior distribution
+
+	2) "Meta" is the Bernoulli optimal policy which learns the button distribution,
+		assuming it is Beta distribution with unspecified parameters
+		It takes one argument specifying the (alpha, beta) hyperprior parameter k
+
+		prior_k=k
+		
+		The default value is prior_k=1.0
+
+	3) "Truncated" is the optimal policy for Bernoulli buttons with uniform distribution [0, p_max]
+		It takes one argument specifying p_max
+
+		truncation=p_max
+
+		The default value is truncation=0.9
+
+	4) "Random" is the control bad policy which randomly takes a new button with probability p
+		It takes one argument specifying p
+
+		switch_probability=p
+
+		The default value is switch_probability=0.2
+
+	5) "Difference" is the policy that stays with the button if it either has no fails
+		or the number of wins is greated than the number of fails by a certain threshold diff
+		It takes one argument specifying the threshold
+
+		difference=dif
+
+		The default value is difference=4

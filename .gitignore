@@ -1,0 +1,7 @@
+.ipynb_checkpoints/
+Plots/
+__pycache__/
+Simulations/__pycache__/
+Simulations/obj/
+Simulations/run
+Simulations/routines_lib.so
