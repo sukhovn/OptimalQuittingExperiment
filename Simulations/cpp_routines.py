@@ -166,6 +166,19 @@ class Policy(object):
 				self.parameters = np.array([kwargs.pop('ratio')], dtype=np.float64)
 			else:
 				self.parameters = np.array([0.6], dtype=np.float64)
+		elif type == 'Finite':
+			self.type = 'n'
+			cost = 0.0
+			prior = [1.0, 1.0]
+			if 'nbuttons' not in kwargs:
+				raise TypeError('Finite Bernoulli policy is missing number of buttons parameter')
+			else:
+				nbuttons = kwargs.pop('nbuttons')
+			if 'prior' in kwargs:
+				prior = kwargs.pop('prior')
+			if 'cost' in kwargs:
+				cost = kwargs.pop('cost')
+			self.parameters = np.array([nbuttons, cost, prior[0], prior[1]], dtype=np.float64)
 		if(len(kwargs) > 0):
 			raise TypeError(list(kwargs.keys())[0] + ' is an invalid keyword argument')
 
@@ -201,4 +214,47 @@ def record_full_trials(time, num_tries, button, policy, **kwargs):
 	record_full_trials_cpp(val, time, cost, num_tries, button.type.encode(), button.parameters, policy.type.encode(), policy.parameters)
 	val = val.reshape((num_tries, time, 4))
 	val[::,0:2] = np.rint(val[::,0:2])
+	return val
+
+#Finite arm reward table function
+finite_arm_reward_table_cpp = lib.finite_arm_reward_table
+finite_arm_reward_table_cpp.argtypes = [ctl.ndpointer(np.float64, flags='aligned, c_contiguous'),
+										ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+										ctypes.c_double, ctypes.c_double, ctypes.c_double]
+
+def finite_arm_expected_reward_table(win_max, fail_max, time_max, button_max, **kwargs):
+	prior = (1.0, 1.0)
+	cost = 0.0
+	if 'prior' in kwargs:
+		prior = kwargs.pop('prior')
+	if 'cost' in kwargs:
+		cost = kwargs.pop('cost')
+	if(len(kwargs) > 0):
+		raise TypeError(list(kwargs.keys())[0] + ' is an invalid keyword argument')
+
+	val = np.zeros(win_max*fail_max*button_max*time_max, dtype=np.float64)
+	finite_arm_reward_table_cpp(val, win_max, fail_max, time_max, button_max, cost, prior[0], prior[1])
+	val = val.reshape((time_max, button_max, win_max, fail_max))
+	return val
+
+
+#Finite arm transition table function
+finite_arm_transition_table_cpp = lib.finite_arm_transition_table
+finite_arm_transition_table_cpp.argtypes = [ctl.ndpointer(np.int32, flags='aligned, c_contiguous'),
+											ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+											ctypes.c_double, ctypes.c_double, ctypes.c_double]
+
+def finite_arm_transition_table(win_max, fail_max, time_max, button_max, **kwargs):
+	prior = (1.0, 1.0)
+	cost = 0.0
+	if 'prior' in kwargs:
+		prior = kwargs.pop('prior')
+	if 'cost' in kwargs:
+		cost = kwargs.pop('cost')
+	if(len(kwargs) > 0):
+		raise TypeError(list(kwargs.keys())[0] + ' is an invalid keyword argument')
+
+	val = np.zeros(win_max*fail_max*button_max*time_max, dtype=np.int32)
+	finite_arm_transition_table_cpp(val, win_max, fail_max, time_max, button_max, cost, prior[0], prior[1])
+	val = val.reshape((time_max, button_max, win_max, fail_max))
 	return val

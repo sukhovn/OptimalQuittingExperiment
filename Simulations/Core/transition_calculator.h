@@ -5,18 +5,6 @@
 #ifndef TRANSITION_CALCULATOR_ALT_H
 #define TRANSITION_CALCULATOR_ALT_H
 
-//Defines the model to be recursively solved via dynamic programming
-#ifndef PROBABILISTIC_MODEL_CLASS
-#define PROBABILISTIC_MODEL_CLASS
-
-class Probabilistic_Model{
-public:
-	virtual double mean_step_reward(int win, int fail) = 0;
-	virtual double success_transition_p(int win, int fail) = 0;
-};
-
-#endif
-
 //Calculates the optimal transition table
 class Transition_Table: public Probabilistic_Model{
 private:

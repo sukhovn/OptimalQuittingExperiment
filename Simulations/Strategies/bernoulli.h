@@ -12,7 +12,7 @@
 // for (int i = 0; i < 10; ++i)
 // 	std::cout << distr(generator) << '\n';
 
-// Simulates Bernoulii button drawn out of the uniform distribution 
+// Simulates Bernoulli button drawn out of the uniform distribution
 
 class Bernoulli_Button: public Button{
 private:
