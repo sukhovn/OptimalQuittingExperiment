@@ -114,14 +114,20 @@ class Decision_Process:
         #Ratio of largest button contribution to total contribution
         top_button_to_all = np.array([max(subject)/sum(subject) for subject in contributions])
         
+        percentiles = np.percentile(num_buttons, [25, 50, 75])
         print("The average number of buttons explored is " + str(np.sum(num_buttons)/len(num_buttons)))
+        print("The median number of buttons explored is %.d (IQR %.1lf-%.1lf)" % (percentiles[1], percentiles[0], percentiles[2]))
         print("The average reward received is " + 
                       str(np.sum([sum(subject) for subject in contributions])/len(contributions)))
-        print("Out of " + str(len(contributions)) + " subjects in total " + str(num_last_largest_contr) + 
-                    " subjects (or " + "%.2f" % (100*num_last_largest_contr/len(contributions)) + 
-                      "%) got the largest contribution from the last button")
-        print("The average contribution of the button with the largest contribution is " + 
+        p_largest = num_last_largest_contr/len(contributions)
+        print("Out of " + str(len(contributions)) + " subjects in total " + str(num_last_largest_contr) +
+                    " subjects (or " + "%.3lf%% +- %.3lf%%" % (100*p_largest, np.sqrt(p_largest*(1-p_largest)/len(contributions))) +
+                      ") got the largest contribution from the last button")
+        perc_top_to_all = np.percentile(top_button_to_all, [25, 50, 75])
+        print("The average contribution of the button with the largest contribution is " +
                   "%4.2f" % (100*np.mean(top_button_to_all)) + " %")
+        print("The median contribution of the button with the largest contribution is %.2lf (IQR %.2lf-%.2lf)" %\
+              (perc_top_to_all[1], perc_top_to_all[0], perc_top_to_all[2]))
         
         return num_buttons, top_button_to_all
 
